@@ -12,17 +12,23 @@ import { apiPost, setUser } from '../api'
 
 export default function LoginPage() {
   const navigate = useNavigate()
-  const [form, setForm] = useState({ email: '', password: '' })
-  const [err,  setErr]  = useState('')
+  const [form,    setForm]    = useState({ email: '', password: '' })
+  const [err,     setErr]     = useState('')
+  const [loading, setLoading] = useState(false)
 
   const handle = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
 
   const submit = async e => {
     e.preventDefault()
     setErr('')
-    const res = await apiPost('auth/login.php', form)
-    if (res.success) { setUser(res.data); navigate('/') }
-    else setErr(res.error)
+    setLoading(true)
+    try {
+      const res = await apiPost('auth/login.php', form)
+      if (res.success) { setUser(res.data); navigate('/') }
+      else setErr(res.error)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -35,9 +41,11 @@ export default function LoginPage() {
           {err && <Alert severity="error" sx={{ mb: 2 }}>{err}</Alert>}
 
           <Box component="form" onSubmit={submit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <TextField label="Email" name="email" type="email" value={form.email} onChange={handle} required fullWidth size="small" />
-            <TextField label="密碼" name="password" type="password" value={form.password} onChange={handle} required fullWidth size="small" />
-            <Button type="submit" variant="contained" color="primary" size="large" fullWidth>登入</Button>
+            <TextField label="Email" name="email" type="email" value={form.email} onChange={handle} required fullWidth size="small" disabled={loading} />
+            <TextField label="密碼" name="password" type="password" value={form.password} onChange={handle} required fullWidth size="small" disabled={loading} />
+            <Button type="submit" variant="contained" color="primary" size="large" fullWidth disabled={loading}>
+              {loading ? '登入中…' : '登入'}
+            </Button>
           </Box>
 
           <Typography variant="body2" align="center" sx={{ mt: 2 }}>

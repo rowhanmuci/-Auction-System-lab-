@@ -12,6 +12,13 @@ import Avatar from '@mui/material/Avatar'
 import Alert from '@mui/material/Alert'
 import CircularProgress from '@mui/material/CircularProgress'
 import Paper from '@mui/material/Paper'
+import Collapse from '@mui/material/Collapse'
+import Table from '@mui/material/Table'
+import TableHead from '@mui/material/TableHead'
+import TableBody from '@mui/material/TableBody'
+import TableRow from '@mui/material/TableRow'
+import TableCell from '@mui/material/TableCell'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { apiGet, apiPost, getUser } from '../api'
 
 function timeLeft(endTime) {
@@ -27,14 +34,17 @@ export default function ItemDetailPage() {
   const navigate    = useNavigate()
   const user        = getUser()
 
-  const [item,     setItem]     = useState(null)
-  const [loading,  setLoading]  = useState(true)
-  const [selImg,   setSelImg]   = useState(0)
-  const [bidAmt,   setBidAmt]   = useState('')
-  const [bidMsg,   setBidMsg]   = useState(null)
-  const [comments, setComments] = useState([])
-  const [comment,  setComment]  = useState('')
-  const [cmtMsg,   setCmtMsg]   = useState(null)
+  const [item,        setItem]        = useState(null)
+  const [loading,     setLoading]     = useState(true)
+  const [selImg,      setSelImg]      = useState(0)
+  const [bidAmt,      setBidAmt]      = useState('')
+  const [bidMsg,      setBidMsg]      = useState(null)
+  const [bidding,     setBidding]     = useState(false)
+  const [comments,    setComments]    = useState([])
+  const [comment,     setComment]     = useState('')
+  const [cmtMsg,      setCmtMsg]      = useState(null)
+  const [bidHistory,  setBidHistory]  = useState([])
+  const [historyOpen, setHistoryOpen] = useState(false)
 
   const loadItem = async () => {
     const r = await apiGet('items/detail.php', { item_id: itemId })
@@ -47,18 +57,33 @@ export default function ItemDetailPage() {
     if (r.success) setComments(r.data)
   }
 
-  useEffect(() => { loadItem() }, [itemId])
+  const loadHistory = async () => {
+    const r = await apiGet('bids/history.php', { item_id: itemId })
+    if (r.success) setBidHistory(r.data)
+  }
+
+  useEffect(() => {
+    loadItem()
+    loadHistory()
+  }, [itemId])
+
   useEffect(() => { if (item) loadComments(item.SellerID) }, [item?.SellerID])
 
   const handleBid = async () => {
     setBidMsg(null)
-    const r = await apiPost('bids/place.php', { item_id: parseInt(itemId), bid_amount: parseFloat(bidAmt) })
-    if (r.success) {
-      setBidMsg({ type: 'success', text: `出價成功！NT$ ${parseFloat(r.data.bid_amount).toLocaleString()}` })
-      setBidAmt('')
-      loadItem()
-    } else {
-      setBidMsg({ type: 'error', text: r.error })
+    setBidding(true)
+    try {
+      const r = await apiPost('bids/place.php', { item_id: parseInt(itemId), bid_amount: parseFloat(bidAmt) })
+      if (r.success) {
+        setBidMsg({ type: 'success', text: `出價成功！NT$ ${parseFloat(r.data.bid_amount).toLocaleString()}` })
+        setBidAmt('')
+        loadItem()
+        loadHistory()
+      } else {
+        setBidMsg({ type: 'error', text: r.error })
+      }
+    } finally {
+      setBidding(false)
     }
   }
 
@@ -139,17 +164,22 @@ export default function ItemDetailPage() {
 
             {/* Bid form */}
             {canBid && (
-              <Box sx={{ mb: 3 }}>
+              <Box sx={{ mb: 2 }}>
                 {bidMsg && <Alert severity={bidMsg.type} sx={{ mb: 1.5 }}>{bidMsg.text}</Alert>}
                 <Box sx={{ display: 'flex', gap: 1 }}>
                   <TextField
                     size="small" type="number" placeholder="輸入出價金額"
                     value={bidAmt} onChange={e => setBidAmt(e.target.value)}
+                    disabled={bidding}
                     InputProps={{ startAdornment: <Typography sx={{ mr: 0.5, color: 'text.secondary' }}>NT$</Typography> }}
                     sx={{ flex: 1 }}
                   />
-                  <Button variant="contained" color="primary" onClick={handleBid} disabled={!bidAmt}>
-                    出價
+                  <Button
+                    variant="contained" color="primary"
+                    onClick={handleBid}
+                    disabled={!bidAmt || bidding}
+                  >
+                    {bidding ? '出價中…' : '出價'}
                   </Button>
                 </Box>
               </Box>
@@ -159,6 +189,55 @@ export default function ItemDetailPage() {
                 登入後出價
               </Button>
             )}
+
+            {/* Bid history collapsible */}
+            <Box sx={{ mb: 2 }}>
+              <Button
+                size="small"
+                variant="text"
+                color="inherit"
+                onClick={() => setHistoryOpen(o => !o)}
+                endIcon={
+                  <ExpandMoreIcon
+                    sx={{ transition: 'transform .2s', transform: historyOpen ? 'rotate(180deg)' : 'none' }}
+                  />
+                }
+                sx={{ color: 'text.secondary', px: 0 }}
+              >
+                出價紀錄（{bidHistory.length}）
+              </Button>
+              <Collapse in={historyOpen}>
+                {bidHistory.length === 0 ? (
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>尚無出價。</Typography>
+                ) : (
+                  <Table size="small" sx={{ mt: 1 }}>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell sx={{ fontWeight: 700 }}>排名</TableCell>
+                        <TableCell sx={{ fontWeight: 700 }}>出價者</TableCell>
+                        <TableCell sx={{ fontWeight: 700 }}>金額</TableCell>
+                        <TableCell sx={{ fontWeight: 700 }}>時間</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {bidHistory.map((b, i) => (
+                        <TableRow key={b.BidID}>
+                          <TableCell>
+                            {i === 0
+                              ? <Chip label="最高" size="small" sx={{ bgcolor: '#FFD700', color: '#333', fontWeight: 700 }} />
+                              : `#${i + 1}`
+                            }
+                          </TableCell>
+                          <TableCell>{b.bidder_name}</TableCell>
+                          <TableCell>NT$ {parseFloat(b.bid_amount).toLocaleString()}</TableCell>
+                          <TableCell>{new Date(b.bid_time).toLocaleString()}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </Collapse>
+            </Box>
 
             <Divider sx={{ my: 2 }} />
 

@@ -15,9 +15,10 @@ export default function ProfilePage() {
   const { userId }  = useParams()
   const navigate    = useNavigate()
   const user        = getUser()
-  const [comments, setComments] = useState([])
-  const [content,  setContent]  = useState('')
-  const [msg,      setMsg]      = useState(null)
+  const [comments,    setComments]    = useState([])
+  const [content,     setContent]     = useState('')
+  const [msg,         setMsg]         = useState(null)
+  const [profileUser, setProfileUser] = useState(null)
 
   const load = async () => {
     const r = await apiGet('comments/get.php', { user_id: userId })
@@ -27,6 +28,9 @@ export default function ProfilePage() {
   useEffect(() => {
     if (!userId) { navigate(user ? `/profile/${user.user_id}` : '/login'); return }
     load()
+    apiGet('users/profile.php', { user_id: userId }).then(r => {
+      if (r.success) setProfileUser(r.data)
+    })
   }, [userId])
 
   const submit = async () => {
@@ -44,11 +48,13 @@ export default function ProfilePage() {
       <Container maxWidth="md">
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
           <Avatar sx={{ bgcolor: 'primary.main', width: 56, height: 56, fontSize: 24 }}>
-            {userId}
+            {profileUser?.name?.[0] ?? '?'}
           </Avatar>
           <Box>
             <Typography variant="h5" fontWeight={700}>留言板</Typography>
-            <Typography variant="body2" color="text.secondary">用戶 #{userId}</Typography>
+            <Typography variant="body2" color="text.secondary">
+              {profileUser?.name ?? '載入中…'}
+            </Typography>
           </Box>
         </Box>
         <Divider sx={{ mb: 3 }} />

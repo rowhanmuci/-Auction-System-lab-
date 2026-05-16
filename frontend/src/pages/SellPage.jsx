@@ -19,7 +19,8 @@ export default function SellPage() {
     title: '', description: '', starting_price: '',
     category_id: '', start_time: '', end_time: '', images: '',
   })
-  const [msg, setMsg] = useState(null)
+  const [msg,     setMsg]     = useState(null)
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     if (!isLoggedIn()) { navigate('/login'); return }
@@ -31,20 +32,29 @@ export default function SellPage() {
   const submit = async e => {
     e.preventDefault()
     setMsg(null)
-    const images = form.images.split('\n').map(u => u.trim()).filter(Boolean)
-    const data = {
-      ...form,
-      starting_price: parseFloat(form.starting_price),
-      category_id:    parseInt(form.category_id),
-      start_time:     form.start_time.replace('T', ' ') + ':00',
-      end_time:       form.end_time.replace('T', ' ') + ':00',
-      images,
+    if (form.start_time && form.end_time && new Date(form.end_time) <= new Date(form.start_time)) {
+      setMsg({ type: 'error', text: '結束時間必須晚於開始時間' })
+      return
     }
-    const res = await apiPost('items/create.php', data)
-    if (res.success) {
-      setMsg({ type: 'success', text: '上架成功！', itemId: res.data.item_id })
-    } else {
-      setMsg({ type: 'error', text: res.error })
+    setLoading(true)
+    try {
+      const images = form.images.split('\n').map(u => u.trim()).filter(Boolean)
+      const data = {
+        ...form,
+        starting_price: parseFloat(form.starting_price),
+        category_id:    parseInt(form.category_id),
+        start_time:     form.start_time.replace('T', ' ') + ':00',
+        end_time:       form.end_time.replace('T', ' ') + ':00',
+        images,
+      }
+      const res = await apiPost('items/create.php', data)
+      if (res.success) {
+        setMsg({ type: 'success', text: '上架成功！', itemId: res.data.item_id })
+      } else {
+        setMsg({ type: 'error', text: res.error })
+      }
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -63,18 +73,18 @@ export default function SellPage() {
           )}
 
           <Box component="form" onSubmit={submit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <TextField label="商品名稱" name="title" value={form.title} onChange={handle} required fullWidth size="small" />
-            <TextField label="商品描述" name="description" value={form.description} onChange={handle} multiline rows={3} fullWidth size="small" />
-            <TextField label="起標價（NT$）" name="starting_price" type="number" value={form.starting_price} onChange={handle} required fullWidth size="small" inputProps={{ min: 1, step: '0.01' }} />
-            <TextField label="分類" name="category_id" select value={form.category_id} onChange={handle} required fullWidth size="small">
+            <TextField label="商品名稱" name="title" value={form.title} onChange={handle} required fullWidth size="small" disabled={loading} />
+            <TextField label="商品描述" name="description" value={form.description} onChange={handle} multiline rows={3} fullWidth size="small" disabled={loading} />
+            <TextField label="起標價（NT$）" name="starting_price" type="number" value={form.starting_price} onChange={handle} required fullWidth size="small" inputProps={{ min: 1, step: '0.01' }} disabled={loading} />
+            <TextField label="分類" name="category_id" select value={form.category_id} onChange={handle} required fullWidth size="small" disabled={loading}>
               {categories.map(c => <MenuItem key={c.CategoryID} value={c.CategoryID}>{c.category_name}</MenuItem>)}
             </TextField>
             <Grid container spacing={2}>
               <Grid item xs={6}>
-                <TextField label="開始時間" name="start_time" type="datetime-local" value={form.start_time} onChange={handle} required fullWidth size="small" InputLabelProps={{ shrink: true }} />
+                <TextField label="開始時間" name="start_time" type="datetime-local" value={form.start_time} onChange={handle} required fullWidth size="small" InputLabelProps={{ shrink: true }} disabled={loading} />
               </Grid>
               <Grid item xs={6}>
-                <TextField label="結束時間" name="end_time" type="datetime-local" value={form.end_time} onChange={handle} required fullWidth size="small" InputLabelProps={{ shrink: true }} />
+                <TextField label="結束時間" name="end_time" type="datetime-local" value={form.end_time} onChange={handle} required fullWidth size="small" InputLabelProps={{ shrink: true }} disabled={loading} />
               </Grid>
             </Grid>
             <TextField
@@ -82,9 +92,11 @@ export default function SellPage() {
               name="images" multiline rows={3}
               value={form.images} onChange={handle}
               placeholder="https://example.com/photo.jpg"
-              fullWidth size="small"
+              fullWidth size="small" disabled={loading}
             />
-            <Button type="submit" variant="contained" color="success" size="large" fullWidth>上架</Button>
+            <Button type="submit" variant="contained" color="success" size="large" fullWidth disabled={loading}>
+              {loading ? '上架中…' : '上架'}
+            </Button>
           </Box>
         </Paper>
       </Container>

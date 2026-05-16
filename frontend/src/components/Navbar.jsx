@@ -35,7 +35,7 @@ const SearchIconWrapper = styled('div')(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  pointerEvents: 'none',
+  cursor: 'pointer',
 }))
 
 const StyledInputBase = styled(InputBase)(({ theme }) => ({
@@ -48,9 +48,16 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 }))
 
 export default function Navbar() {
-  const navigate  = useNavigate()
-  const user      = getUser()
-  const [anchor, setAnchor] = useState(null)
+  const navigate    = useNavigate()
+  const user        = getUser()
+  const [anchor,    setAnchor]    = useState(null)
+  const [searchVal, setSearchVal] = useState('')
+
+  const handleSearch = () => {
+    const q = searchVal.trim()
+    if (!q) return
+    navigate('/', { state: { search: q } })
+  }
 
   const handleLogout = async () => {
     await apiPost('auth/logout.php')
@@ -76,8 +83,16 @@ export default function Navbar() {
         {/* Search */}
         <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
           <Search>
-            <StyledInputBase placeholder="搜尋商品…" inputProps={{ 'aria-label': 'search' }} />
-            <SearchIconWrapper><SearchIcon fontSize="small" /></SearchIconWrapper>
+            <StyledInputBase
+              placeholder="搜尋商品…"
+              inputProps={{ 'aria-label': 'search' }}
+              value={searchVal}
+              onChange={e => setSearchVal(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleSearch()}
+            />
+            <SearchIconWrapper onClick={handleSearch}>
+              <SearchIcon fontSize="small" />
+            </SearchIconWrapper>
           </Search>
         </Box>
 
@@ -94,10 +109,12 @@ export default function Navbar() {
 
         <Menu anchorEl={anchor} open={Boolean(anchor)} onClose={() => setAnchor(null)}>
           {user ? [
-            <MenuItem key="name" disabled>{user.name}</MenuItem>,
-            <MenuItem key="profile" onClick={() => { navigate(`/profile/${user.user_id}`); setAnchor(null) }}>我的留言板</MenuItem>,
-            <MenuItem key="sell"    onClick={() => { navigate('/sell'); setAnchor(null) }}>上架商品</MenuItem>,
-            <MenuItem key="logout"  onClick={handleLogout} sx={{ color: 'error.main' }}>登出</MenuItem>,
+            <MenuItem key="name"     disabled>{user.name}</MenuItem>,
+            <MenuItem key="profile"  onClick={() => { navigate(`/profile/${user.user_id}`); setAnchor(null) }}>我的留言板</MenuItem>,
+            <MenuItem key="listings" onClick={() => { navigate('/my-listings'); setAnchor(null) }}>我的上架</MenuItem>,
+            <MenuItem key="bids"     onClick={() => { navigate('/my-bids');     setAnchor(null) }}>我的出價</MenuItem>,
+            <MenuItem key="sell"     onClick={() => { navigate('/sell');         setAnchor(null) }}>上架商品</MenuItem>,
+            <MenuItem key="logout"   onClick={handleLogout} sx={{ color: 'error.main' }}>登出</MenuItem>,
           ] : [
             <MenuItem key="login"    onClick={() => { navigate('/login');    setAnchor(null) }}>登入</MenuItem>,
             <MenuItem key="register" onClick={() => { navigate('/register'); setAnchor(null) }}>註冊</MenuItem>,

@@ -112,7 +112,7 @@ export default function ItemDetailPage() {
         <Grid container spacing={4}>
 
           {/* Left: image gallery */}
-          <Grid item xs={12} md={6}>
+          <Grid xs={12} md={6}>
             <Box sx={{ position: 'sticky', top: 80 }}>
               <Box
                 component="img"
@@ -131,7 +131,7 @@ export default function ItemDetailPage() {
                       onClick={() => setSelImg(i)}
                       sx={{
                         width: 64, height: 64, objectFit: 'cover', borderRadius: 1,
-                        cursor: 'pointer', border: i === selImg ? '2px solid #E53935' : '2px solid transparent',
+                        cursor: 'pointer', border: i === selImg ? '2px solid #317b88' : '2px solid transparent',
                       }}
                     />
                   ))}
@@ -141,7 +141,7 @@ export default function ItemDetailPage() {
           </Grid>
 
           {/* Right: info panel */}
-          <Grid item xs={12} md={6}>
+          <Grid xs={12} md={6}>
             <Box sx={{ display: 'flex', gap: 1, mb: 1.5 }}>
               <Chip label={item.category_name} size="small" />
               {ended
@@ -171,7 +171,7 @@ export default function ItemDetailPage() {
                     size="small" type="number" placeholder="輸入出價金額"
                     value={bidAmt} onChange={e => setBidAmt(e.target.value)}
                     disabled={bidding}
-                    InputProps={{ startAdornment: <Typography sx={{ mr: 0.5, color: 'text.secondary' }}>NT$</Typography> }}
+                    slotProps={{ input: { startAdornment: <Typography sx={{ mr: 0.5, color: 'text.secondary' }}>NT$</Typography> } }}
                     sx={{ flex: 1 }}
                   />
                   <Button

@@ -17,6 +17,17 @@ export async function apiPost(endpoint, data = {}) {
   return res.json()
 }
 
+export async function apiUpload(endpoint, file) {
+  const fd = new FormData()
+  fd.append('image', file)
+  const res = await fetch(`${BASE}/${endpoint}`, {
+    method: 'POST',
+    body: fd,
+    credentials: 'include',
+  })
+  return res.json()
+}
+
 export function getUser() {
   try { return JSON.parse(localStorage.getItem('auction_user')) } catch { return null }
 }

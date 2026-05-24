@@ -62,7 +62,7 @@ export default function RegisterPage() {
           </Box>
 
           <Typography variant="body2" align="center" sx={{ mt: 2 }}>
-            已有帳號？<Link to="/login" style={{ color: '#E53935' }}>登入</Link>
+            已有帳號？<Link to="/login" style={{ color: '#317b88' }}>登入</Link>
           </Typography>
         </Paper>
       </Container>

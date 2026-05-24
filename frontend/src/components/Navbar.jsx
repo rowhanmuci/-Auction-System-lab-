@@ -68,7 +68,7 @@ export default function Navbar() {
   }
 
   return (
-    <AppBar position="sticky" elevation={0} sx={{ bgcolor: '#CC0000' }}>
+    <AppBar position="sticky" elevation={0} sx={{ bgcolor: '#317b88' }}>
       <Toolbar sx={{ gap: 1 }}>
         {/* Logo */}
         <Typography
@@ -77,7 +77,7 @@ export default function Navbar() {
           sx={{ cursor: 'pointer', whiteSpace: 'nowrap', mr: 2 }}
           onClick={() => navigate('/')}
         >
-          拍賣平台
+          Cream Auction System
         </Typography>
 
         {/* Search */}

@@ -83,7 +83,7 @@ export default function HomePage() {
         ) : (
           <Grid container spacing={2}>
             {items.map(item => (
-              <Grid key={item.ItemID} item xs={6} sm={4} md={3} lg={2.4}>
+              <Grid key={item.ItemID} xs={6} sm={4} md={3} lg={2.4}>
                 <ItemCard item={item} />
               </Grid>
             ))}

@@ -2,9 +2,9 @@ import { createTheme } from '@mui/material/styles'
 
 const theme = createTheme({
   palette: {
-    primary:    { main: '#E53935' },
-    secondary:  { main: '#FF7043' },
-    background: { default: '#F6F6F6', paper: '#FFFFFF' },
+    primary:    { main: '#317b88' },
+    secondary:  { main: '#d63b99' },
+    background: { default: '#F5F9FA', paper: '#FFFFFF' },
   },
   typography: {
     fontFamily: '"Noto Sans TC", "Helvetica Neue", Arial, sans-serif',

@@ -1,4 +1,7 @@
 <?php
+error_reporting(0);
+ini_set('display_errors', 0);
+
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Credentials: true');
@@ -52,8 +55,16 @@ $ext      = match($mimeType) {
     'image/gif'  => 'gif',
 };
 $filename = uniqid('img_', true) . '.' . $ext;
-$uploadDir = __DIR__ . '/../../../../uploads/';
+$uploadDir = dirname(__DIR__) . '/../../uploads/';
 $destPath  = $uploadDir . $filename;
+
+// Ensure upload directory exists
+if (!is_dir($uploadDir)) {
+    if (!mkdir($uploadDir, 0755, true)) {
+        echo json_encode(['success' => false, 'error' => 'Cannot create upload directory']);
+        exit;
+    }
+}
 
 if (!move_uploaded_file($file['tmp_name'], $destPath)) {
     echo json_encode(['success' => false, 'error' => 'Failed to save file']);

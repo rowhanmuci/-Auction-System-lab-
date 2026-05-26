@@ -25,7 +25,19 @@ export async function apiUpload(endpoint, file) {
     body: fd,
     credentials: 'include',
   })
-  return res.json()
+  
+  // Check if response is ok and contains json
+  if (!res.ok) {
+    throw new Error(`HTTP error! status: ${res.status}`)
+  }
+  
+  const text = await res.text()
+  try {
+    return JSON.parse(text)
+  } catch (e) {
+    console.error('Invalid JSON response:', text)
+    throw new Error('Invalid response format')
+  }
 }
 
 export function getUser() {

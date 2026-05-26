@@ -20,6 +20,7 @@ import TableRow from '@mui/material/TableRow'
 import TableCell from '@mui/material/TableCell'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { apiGet, apiPost, getUser } from '../api'
+import { getAbsoluteImageUrl } from '../utils'
 
 function timeLeft(endTime) {
   const diff = new Date(endTime) - new Date()
@@ -52,8 +53,8 @@ export default function ItemDetailPage() {
     else { setLoading(false) }
   }
 
-  const loadComments = async (ownerId) => {
-    const r = await apiGet('comments/get.php', { user_id: ownerId })
+  const loadComments = async (itemId) => {
+    const r = await apiGet('comments/get.php', { item_id: itemId })
     if (r.success) setComments(r.data)
   }
 
@@ -67,7 +68,7 @@ export default function ItemDetailPage() {
     loadHistory()
   }, [itemId])
 
-  useEffect(() => { if (item) loadComments(item.SellerID) }, [item?.SellerID])
+  useEffect(() => { if (item) loadComments(item.ItemID) }, [item?.ItemID])
 
   const handleBid = async () => {
     setBidMsg(null)
@@ -89,11 +90,15 @@ export default function ItemDetailPage() {
 
   const handleComment = async () => {
     setCmtMsg(null)
-    const r = await apiPost('comments/post.php', { board_owner_id: item.SellerID, content: comment })
+    const r = await apiPost('comments/post.php', {
+      item_id: item.ItemID,
+      board_owner_id: item.SellerID,
+      content: comment
+    })
     if (r.success) {
       setComment('')
       setCmtMsg({ type: 'success', text: '留言成功！' })
-      loadComments(item.SellerID)
+      loadComments(item.ItemID)
     } else {
       setCmtMsg({ type: 'error', text: r.error })
     }
@@ -104,7 +109,9 @@ export default function ItemDetailPage() {
 
   const ended   = new Date() > new Date(item.end_time)
   const canBid  = !ended && user && user.user_id !== item.SellerID
-  const images  = item.images?.length ? item.images : ['https://placehold.co/500x500?text=No+Image']
+  const images  = item.images?.length 
+    ? item.images.map(url => getAbsoluteImageUrl(url))
+    : ['https://placehold.co/500x500?text=No+Image']
 
   return (
     <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', pb: 6 }}>
@@ -171,7 +178,7 @@ export default function ItemDetailPage() {
                     size="small" type="number" placeholder="輸入出價金額"
                     value={bidAmt} onChange={e => setBidAmt(e.target.value)}
                     disabled={bidding}
-                    slotProps={{ input: { startAdornment: <Typography sx={{ mr: 0.5, color: 'text.secondary' }}>NT$</Typography> } }}
+                    InputProps={{ startAdornment: <Typography sx={{ mr: 0.5, color: 'text.secondary' }}>NT$</Typography> }}
                     sx={{ flex: 1 }}
                   />
                   <Button

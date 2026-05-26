@@ -21,18 +21,19 @@ if (empty($_SESSION['user_id'])) {
 require_once(__DIR__ . '/../../config/db.php');
 
 $data         = json_decode(file_get_contents('php://input'), true);
+$item_id      = (int)($data['item_id']        ?? 0);
 $board_owner  = (int)($data['board_owner_id'] ?? 0);
 $content      = trim($data['content']         ?? '');
 
-if ($board_owner <= 0 || !$content) {
-    echo json_encode(['success' => false, 'error' => 'board_owner_id and content are required']);
+if ($item_id <= 0 || $board_owner <= 0 || !$content) {
+    echo json_encode(['success' => false, 'error' => 'item_id, board_owner_id and content are required']);
     exit;
 }
 
 $writer_id = $_SESSION['user_id'];
 
-$stmt = $conn->prepare('INSERT INTO comment (content, WriterID, BoardOwnerID) VALUES (?, ?, ?)');
-$stmt->bind_param('sii', $content, $writer_id, $board_owner);
+$stmt = $conn->prepare('INSERT INTO comment (content, WriterID, BoardOwnerID, ItemID) VALUES (?, ?, ?, ?)');
+$stmt->bind_param('siii', $content, $writer_id, $board_owner, $item_id);
 if ($stmt->execute()) {
     // Notify board owner (skip if owner comments on own board)
     if ($board_owner !== $writer_id) {

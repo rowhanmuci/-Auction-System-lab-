@@ -11,6 +11,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/auction/backend': 'http://localhost',
+      '/auction/uploads': 'http://localhost',
     },
   },
 })

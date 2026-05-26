@@ -4,9 +4,9 @@ header('Access-Control-Allow-Origin: *');
 
 require_once(__DIR__ . '/../../config/db.php');
 
-$user_id = isset($_GET['user_id']) ? (int)$_GET['user_id'] : 0;
-if ($user_id <= 0) {
-    echo json_encode(['success' => false, 'error' => 'Invalid user_id']);
+$item_id = isset($_GET['item_id']) ? (int)$_GET['item_id'] : 0;
+if ($item_id <= 0) {
+    echo json_encode(['success' => false, 'error' => 'Invalid item_id']);
     exit;
 }
 
@@ -15,10 +15,10 @@ $stmt = $conn->prepare('
            c.WriterID, w.name AS writer_name
     FROM comment c
     JOIN user w ON c.WriterID = w.UserID
-    WHERE c.BoardOwnerID = ?
+    WHERE c.ItemID = ?
     ORDER BY c.post_time DESC
 ');
-$stmt->bind_param('i', $user_id);
+$stmt->bind_param('i', $item_id);
 $stmt->execute();
 $result   = $stmt->get_result();
 $comments = [];

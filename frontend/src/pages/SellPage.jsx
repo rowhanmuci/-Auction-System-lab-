@@ -16,6 +16,7 @@ import CloseIcon from '@mui/icons-material/Close'
 import UploadFileIcon from '@mui/icons-material/UploadFile'
 import AddLinkIcon from '@mui/icons-material/AddLink'
 import { apiGet, apiPost, apiUpload, isLoggedIn } from '../api'
+import { getAbsoluteImageUrl } from '../utils'
 
 export default function SellPage() {
   const navigate    = useNavigate()
@@ -46,11 +47,16 @@ export default function SellPage() {
     setUploading(true)
     try {
       for (const file of files) {
-        const r = await apiUpload('items/upload_image.php', file)
-        if (r.success) {
-          setImages(prev => [...prev, r.data.url])
-        } else {
-          setMsg({ type: 'error', text: `上傳失敗：${r.error}` })
+        try {
+          const r = await apiUpload('items/upload_image.php', file)
+          if (r.success) {
+            setImages(prev => [...prev, r.data.url])
+          } else {
+            setMsg({ type: 'error', text: `上傳失敗：${r.error}` })
+          }
+        } catch (error) {
+          console.error('Upload error:', error)
+          setMsg({ type: 'error', text: `上傳錯誤：${error.message}` })
         }
       }
     } finally {
@@ -182,7 +188,7 @@ export default function SellPage() {
                     <Box key={i} sx={{ position: 'relative', width: 80, height: 80 }}>
                       <Box
                         component="img"
-                        src={url}
+                        src={getAbsoluteImageUrl(url)}
                         alt={`圖片 ${i + 1}`}
                         onError={e => { e.target.src = 'https://placehold.co/80x80?text=?' }}
                         sx={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 1, border: '1px solid', borderColor: 'divider' }}

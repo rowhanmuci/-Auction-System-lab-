@@ -6,6 +6,7 @@ import CardContent from '@mui/material/CardContent'
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
 import Chip from '@mui/material/Chip'
+import { getAbsoluteImageUrl } from '../utils'
 
 function timeLeft(endTime) {
   const diff = new Date(endTime) - new Date()
@@ -34,7 +35,7 @@ export default function ItemCard({ item }) {
         <Box sx={{ position: 'relative' }}>
           <CardMedia
             component="img"
-            image={item.thumbnail || 'https://placehold.co/300x300?text=No+Image'}
+            image={getAbsoluteImageUrl(item.thumbnail) || 'https://placehold.co/300x300?text=No+Image'}
             alt={item.title}
             sx={{ height: 200, objectFit: 'cover' }}
             onError={e => { e.target.src = 'https://placehold.co/300x300?text=No+Image' }}

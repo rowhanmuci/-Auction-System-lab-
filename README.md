@@ -97,35 +97,15 @@ Open **XAMPP Control Panel** and start both:
 
 ### Step 3 — Import the database
 
+`auction.sql` creates all tables (including `notification`) and seeds the categories in one shot.
+
 1. Open `http://localhost/phpmyadmin`
-2. Create a new database named **`auction`** (Collation: `utf8mb4_unicode_ci`)
+2. Click **New** → create a database named **`auction`** (Collation: `utf8mb4_unicode_ci`)
 3. Select the `auction` database → click **Import** → choose `auction.sql` → Execute
 
 ---
 
-### Step 4 — Create the notifications table
-
-Still in phpMyAdmin with the `auction` database selected, click the **SQL** tab and run:
-
-```sql
-CREATE TABLE IF NOT EXISTS notification (
-    id         INT AUTO_INCREMENT PRIMARY KEY,
-    user_id    INT          NOT NULL,
-    type       ENUM('outbid','comment','won') NOT NULL,
-    message    VARCHAR(255) NOT NULL,
-    item_id    INT          NULL,
-    is_read    TINYINT(1)   NOT NULL DEFAULT 0,
-    created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_user   (user_id),
-    INDEX idx_unread (user_id, is_read)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-```
-
-> The SQL is also saved at `backend/config/add_notifications.sql`.
-
----
-
-### Step 5 — Create the uploads directory
+### Step 4 — Create the uploads directory
 
 Image uploads are stored locally. Create the folder manually:
 
@@ -135,7 +115,7 @@ mkdir C:\xampp\htdocs\auction\uploads
 
 ---
 
-### Step 6 — Configure email (optional)
+### Step 5 — Configure email (optional)
 
 Winner notification emails use PHPMailer + Gmail SMTP.  
 Create `backend/config/email.php` (this file is git-ignored):
@@ -154,7 +134,7 @@ Email sending is non-fatal — the system works fine without this file.
 
 ---
 
-### Step 7 — Build the frontend
+### Step 6 — Build the frontend
 
 ```bash
 cd C:\xampp\htdocs\auction\frontend
@@ -166,7 +146,7 @@ Output is written to `../app/`.
 
 ---
 
-### Step 8 — Open the app
+### Step 7 — Open the app
 
 ```
 http://localhost/auction/app/

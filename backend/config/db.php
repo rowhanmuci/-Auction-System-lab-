@@ -1,4 +1,6 @@
 <?php
+date_default_timezone_set('Asia/Taipei');
+
 $host   = 'localhost';
 $user   = 'root';
 $pass   = '';
@@ -6,6 +8,7 @@ $dbname = 'auction';
 
 $conn = new mysqli($host, $user, $pass, $dbname);
 $conn->set_charset('utf8mb4');
+$conn->query("SET time_zone = '+08:00'");
 
 if ($conn->connect_error) {
     http_response_code(500);

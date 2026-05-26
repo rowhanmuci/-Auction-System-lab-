@@ -85,6 +85,13 @@ if ($now > $end && $item['WinnerID'] === null) {
         // Send winner email (suppress output, errors non-fatal)
         require_once(__DIR__ . '/../../../email/notify_winner.php');
         notify_winner($winner['email'], $winner['name'], $item['title']);
+
+        // In-app notification for winner
+        $won_msg   = '恭喜！你得標了「' . $item['title'] . '」';
+        $won_notif = $conn->prepare("INSERT INTO notification (user_id, type, message, item_id) VALUES (?, 'won', ?, ?)");
+        $won_notif->bind_param('isi', $winner['UserID'], $won_msg, $item_id);
+        $won_notif->execute();
+        $won_notif->close();
     }
 }
 

@@ -34,6 +34,15 @@ $writer_id = $_SESSION['user_id'];
 $stmt = $conn->prepare('INSERT INTO comment (content, WriterID, BoardOwnerID) VALUES (?, ?, ?)');
 $stmt->bind_param('sii', $content, $writer_id, $board_owner);
 if ($stmt->execute()) {
+    // Notify board owner (skip if owner comments on own board)
+    if ($board_owner !== $writer_id) {
+        $writer_name = $_SESSION['user_name'] ?? '有人';
+        $msg   = $writer_name . ' 在你的留言板留了言';
+        $notif = $conn->prepare("INSERT INTO notification (user_id, type, message, item_id) VALUES (?, 'comment', ?, NULL)");
+        $notif->bind_param('is', $board_owner, $msg);
+        $notif->execute();
+        $notif->close();
+    }
     echo json_encode(['success' => true, 'data' => ['comment_id' => $conn->insert_id]]);
 } else {
     echo json_encode(['success' => false, 'error' => 'Failed to post comment']);

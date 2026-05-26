@@ -36,8 +36,7 @@ if (!is_numeric($bid_amount) || $bid_amount <= 0) {
 
 $user_id = $_SESSION['user_id'];
 
-// Verify auction is active
-$stmt = $conn->prepare('SELECT SellerID, starting_price, start_time, end_time FROM item WHERE ItemID = ?');
+$stmt = $conn->prepare('SELECT SellerID, starting_price, start_time, end_time, title FROM item WHERE ItemID = ?');
 $stmt->bind_param('i', $item_id);
 $stmt->execute();
 $item = $stmt->get_result()->fetch_assoc();
@@ -59,7 +58,6 @@ if ($now < $item['start_time'] || $now > $item['end_time']) {
     exit;
 }
 
-// Get current highest bid
 $stmt = $conn->prepare('SELECT MAX(bid_amount) AS max_bid FROM bid WHERE ItemID = ?');
 $stmt->bind_param('i', $item_id);
 $stmt->execute();
@@ -75,6 +73,18 @@ if ((float)$bid_amount <= (float)$min_bid) {
 $stmt = $conn->prepare('INSERT INTO bid (UserID, ItemID, bid_amount) VALUES (?, ?, ?)');
 $stmt->bind_param('iid', $user_id, $item_id, $bid_amount);
 if ($stmt->execute()) {
+    // Notify all other bidders on this item that they've been outbid
+    $msg   = '商品「' . $item['title'] . '」有新的出價，你的出價已被超越';
+    $notif = $conn->prepare("
+        INSERT INTO notification (user_id, type, message, item_id)
+        SELECT DISTINCT UserID, 'outbid', ?, ?
+        FROM bid
+        WHERE ItemID = ? AND UserID != ?
+    ");
+    $notif->bind_param('siii', $msg, $item_id, $item_id, $user_id);
+    $notif->execute();
+    $notif->close();
+
     echo json_encode(['success' => true, 'data' => ['bid_id' => $conn->insert_id, 'bid_amount' => $bid_amount]]);
 } else {
     echo json_encode(['success' => false, 'error' => 'Failed to place bid']);

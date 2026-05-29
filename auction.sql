@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS item (
     SellerID       INT           NOT NULL,
     CategoryID     INT           NOT NULL,
     WinnerID       INT           DEFAULT NULL,
+    email_sent     BOOLEAN       DEFAULT FALSE,
     FOREIGN KEY (SellerID)   REFERENCES user(UserID)     ON DELETE CASCADE,
     FOREIGN KEY (CategoryID) REFERENCES category(CategoryID) ON DELETE RESTRICT,
     FOREIGN KEY (WinnerID)   REFERENCES user(UserID)     ON DELETE SET NULL
